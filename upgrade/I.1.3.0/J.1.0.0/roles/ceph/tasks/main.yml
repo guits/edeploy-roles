@@ -1,0 +1,42 @@
+---
+# file: roles/network/tasks/main.yml
+
+- seboolean: name=rsync_client state=yes persistent=yes
+  tags: before_config
+  when: ansible_distribution == 'RedHat'
+
+# Dirty hack to upgade /usr/sbin/edeploy before actual upgrade
+# and benefit of rsync with attributes feature.
+# Useful when running SElinux before J.1.0.0
+- name: upgrade edeploy script
+  copy: src=edeploy dest=/usr/sbin/edeploy mode=0755
+  tags: before_config
+
+# Ceph is upgraded in ICE
+- name: stop Ceph services
+  service: name=ceph state=stopped
+  tags: before_config
+  when: ansible_distribution == 'RedHat'
+
+- name: edeploy upgrade
+  edeploy: command=upgrade version={{ distro }}-{{ version }}
+  tags: before_config
+
+- name: reboot the servers
+  command: /sbin/reboot -t now
+  tags: before_config
+  when: ansible_distribution == 'Debian'
+
+- name: Wait for server to come up
+  local_action: wait_for host={{ ansible_fqdn }} port=22 delay=120 timeout=900 state=started
+  tags: before_config
+  when: ansible_distribution == 'Debian'
+
+- name: Ensure old puppet ssl files are removed
+  file: path=/var/lib/puppet/ssl state=absent
+  tags: before_config
+
+- name: start Ceph services
+  service: name=ceph state=started
+  tags: before_config
+  when: ansible_distribution == 'RedHat'
