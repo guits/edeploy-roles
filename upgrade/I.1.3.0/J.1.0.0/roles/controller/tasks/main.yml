@@ -43,7 +43,7 @@
     - "{{ nova_conductor }}"
     - "{{ nova_consoleauth }}"
     - "{{ nova_scheduler }}"
-    - "{{ nova_spicehtml5proxy }}"
+#    - "{{ nova_spicehtml5proxy }}"
     - "{{ swift_proxy }}"
   tags: before_config
 
