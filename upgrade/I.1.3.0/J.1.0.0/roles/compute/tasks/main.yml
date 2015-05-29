@@ -74,7 +74,7 @@
   tags: before_config
 
 - name: allow instance scheduling on the compute node
-  command: nova-manage service enable {{ ansible_fqdn }} nova-compute
+  command: nova-manage service enable {{ ansible_hostname }} nova-compute
   tags: before_config
 
 - name: Ensure old puppet ssl files are removed
