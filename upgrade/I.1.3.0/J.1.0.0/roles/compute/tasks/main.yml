@@ -70,7 +70,7 @@
   service: name={{ item }} state=started
   with_items:
     - "{{ ceilometer_agent_compute }}"
-    - "{{ neutron-openvswitch-agent }}"
+    - "{{ neutron_openvswitch_agent }}"
   tags: before_config
 
 - name: allow instance scheduling on the compute node
