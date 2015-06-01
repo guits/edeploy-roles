@@ -68,7 +68,7 @@
   service: name={{ item }} state=stopped
   with_items:
     - mysqld
-    - mysql-boostrap
+    - mysql-bootstrap
   tags: before_config
   ignore_errors: yes
 
@@ -95,6 +95,11 @@
   service: name=openvswitch-switch state=started
   tags: before_config
   when: ansible_distribution == 'Debian'
+
+- name: force a galera node to create new cluster
+  lineinfile: dest=/usr/lib/systemd/system/mysql-bootstrap.service state=present regexp='^ExecStart=/usr/bin/mysqld_safe' line='ExecStart=/usr/bin/mysqld_safe --wsrep-new-cluster --basedir=/usr'
+  tags: before_config
+  when: ansible_distribution == 'RedHat' and inventory_hostname == groups['controller'][-1]
 
 - name: bootstrap mysql cluster again
   service: name=mysql-bootstrap state=restarted
@@ -240,6 +245,29 @@
 - name: Ensure old puppet ssl files are removed
   file: path=/var/lib/puppet/ssl state=absent
   tags: before_config
+
+# galera_synced : not master nodes
+- name: ensure stop mysql on not master node
+  service: name={{ item }} state=stopped
+  with_items:
+    - mysqld
+    - mysql-bootstrap
+  tags: galera_synced
+  ignore_errors: yes
+  when: ansible_distribution == 'RedHat' and inventory_hostname != groups['controller'][-1]
+
+- name: reset cluster state for not master node
+  file: path={{ item }} state=absent
+  tags: galera_synced
+  with_items:
+    - /var/lib/mysql/grastate.dat
+    - /var/lib/mysql/galera.cache
+  when: ansible_distribution == 'RedHat' and inventory_hostname != groups['controller'][-1]
+
+- name: start mysql cluster
+  service: name=mysqld state=restarted
+  tags: galera_synced
+  when: ansible_distribution == 'RedHat' and inventory_hostname != groups['controller'][-1]
 
 # Clean-up nova config by deleting the option, not useful anymore
 - ini_file: dest=/etc/nova.conf
