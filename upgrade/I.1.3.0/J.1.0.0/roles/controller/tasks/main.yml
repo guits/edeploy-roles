@@ -55,9 +55,11 @@
 
 # Debug force neutron server to kill
 - command: pkill -f /usr/bin/neutron-server
+  tags: before_config
   ignore_errors: True
 
 - command: pkill -9 -f /usr/bin/neutron-server
+  tags: before_config
   ignore_errors: True
 
 # MongoDB is upgraded in RHEL7
@@ -182,7 +184,7 @@
   when: inventory_hostname == groups['controller'][0]
 
 - name: start neutron server service
-  service: name={{ neutron_server }} state=started
+  service: name={{ neutron_server }} state=restarted
   tags: before_config
 
 - name: start networking services
