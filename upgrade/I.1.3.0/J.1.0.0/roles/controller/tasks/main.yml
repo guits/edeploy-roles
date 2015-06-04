@@ -53,6 +53,13 @@
     - "{{ swift_proxy }}"
   tags: before_config
 
+# Debug force neutron server to kill
+- command: pkill -f /usr/bin/neutron-server
+  ignore_errors: True
+
+- command: pkill -9 -f /usr/bin/neutron-server
+  ignore_errors: True
+
 # MongoDB is upgraded in RHEL7
 - name: stop mongodb
   service: name=mongod state=stopped
