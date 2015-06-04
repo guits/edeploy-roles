@@ -102,7 +102,6 @@
 - name: start keepalived
   service: name=keepalived state=started
   tags: before_config
-  when: ansible_distribution == 'Debian'
 
 # Controller part
 
